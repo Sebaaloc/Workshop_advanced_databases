@@ -27,20 +27,90 @@ quota unlimited on vehicles_fleet;
 
 /*5. Assign the dba role and permissions to connect to the user just created */
 
+
+GRANT CREATE SESSION TO USUARIODBA;
+GRANT DBA TO USUARIODBA;
+
 /*6. Create 3 profiles. */
 /*a. Profile 1: "?manager_profile?" password life 40 days, one session per user, 15 minutes idle, 4 failed login attempts.*/
 
+create profile manager_profile limit
+sessions_per_user 1
+idle_time 15
+password_life_time 40
+failed_login_attempts 4;
+
 /*b. Profile 2: "?finance_profile?" password life 15 days, one session per user, 5 minutes idle, 2 failed login attempts.*/
+
+create profile finance_profile limit
+sessions_per_user 1
+idle_time 5
+password_life_time 15
+failed_login_attempts 2;
 
 /*c. Profile 3: "?service_profile?" password life 20 days, one session per user, 10 minutes idle, 3 failed login attempts.*/
 
+create profile service_profile limit
+sessions_per_user 1
+idle_time 10
+password_life_time 20
+failed_login_attempts 3;
+
 /*d. Profile 4: "?development?" password life 100 days, two session per user, 30 minutes idle, no failed login attempts.*/
 
+create profile development limit
+sessions_per_user 2
+idle_time 30
+password_life_time 100
+failed_login_attempts UNLIMITED;
+
+
 /*7. Create 1 role with the name "?without_privileges?" and revoke ALL PRIVILEGES.*/
+
+CREATE ROLE without_privileges1;
+
+GRANT CREATE session TO without_privileges1;
+
+REVOKE ALL FROM without_privileges1; 
 
 /*8. Create 4 users, assign them the tablespace "?vehicles_fleet?"; profiles created should be used for the users, all the users should be allow to connect to the database.*/ 
 /*Use the role "?without_privileges?" for users associate with profiles: ?manager_profile?, ?finance_profile? and ?service_profile?.*/
 
+
+CREATE USER first_user
+identified by usuario1
+default tablespace vehicles_fleet 
+profile manager_profile;
+
+CREATE USER second_user
+identified by usuario2
+default tablespace vehicles_fleet
+profile finance_profile;
+
+CREATE USER third_user
+identified by usuario3
+default tablespace vehicles_fleet
+profile service_profile;
+
+CREATE USER forth_user
+identified by usuario4
+default tablespace vehicles_fleet; 
+
+grant create session to first_user;
+grant create session to second_user;
+grant create session to third_user;
+grant create session to forth_user;
+
+GRANT without_privileges TO first_user;
+GRANT without_privileges TO second_user;
+GRANT without_privileges TO third_user;
+
 /*9. Lock the users associate with profiles: ?manager_profile?, ?finance_profile? and ?service_profile?.*/
 
+ALTER USER first_user ACCOUNT LOCK;
+ALTER USER second_user ACCOUNT LOCK;
+ALTER USER third_user ACCOUNT LOCK;
+
 /*10. Delete the tablespace called "?test_purposes"*/
+
+DROP TABLESPACE test_purposes
